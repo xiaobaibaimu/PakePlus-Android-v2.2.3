@@ -5,8 +5,6 @@ on:
     push:
         tags:
             - 'v*'
-        # branches:
-        #     - 'main'
 
 jobs:
     publish-tauri:
@@ -16,10 +14,10 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - platform: 'macos-latest' # for Arm based macs (M1 and above).
+                    - platform: 'macos-latest'
                       target: 'aarch64-apple-darwin'
                       args: '--target aarch64-apple-darwin'
-                    - platform: 'macos-latest' # for Intel based macs.
+                    - platform: 'macos-latest'
                       target: 'x86_64-apple-darwin'
                       args: '--target x86_64-apple-darwin'
 
@@ -51,18 +49,20 @@ jobs:
             - name: Install rust target
               run: rustup target add ${{ matrix.target }}
 
-            - uses: pnpm/action-setup@v3
-              with:
-                  version: latest
-
+            # 👇 【修复1】先装 NODE，再装 PNPM（顺序正确！）
             - name: Sync node version and setup cache
               uses: actions/setup-node@v4
               with:
                   node-version: 22
                   cache: pnpm
 
+            # 👇 【修复2】PNPM 固定版本，不使用 latest！！！
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 10.12.1
+
             - name: Install frontend dependencies
-              run: pnpm install # change this to npm, pnpm or bun depending on which one you use.
+              run: pnpm install
 
             - name: install Rust stable
               uses: dtolnay/rust-toolchain@stable
